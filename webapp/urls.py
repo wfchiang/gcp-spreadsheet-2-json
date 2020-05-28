@@ -19,5 +19,6 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('ping', views.ping, name='ping')
+    path('ping', views.ping, name='ping'), 
+    path('readSheetData', views.readSheetData, name='readSheetData'),
 ]

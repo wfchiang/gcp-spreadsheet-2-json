@@ -1,14 +1,21 @@
 from django.http import HttpResponse
+from django.http import JsonResponse
 
+import json
 from . import ss2json
 
-# Ping endpoint 
+## Ping endpoint 
 def ping (request): 
-    spreadsheetsId = '1brRpP3_vCuGHAVkA6HkKxLm4DsfnNDNBQVWQCv9prkw'
-    dataRange = 'A2:B3'
+    return HttpResponse("Ping!")
+
+# readSheetData endpoint 
+def readSheetData (request): 
+    # spreadsheetsId = '1brRpP3_vCuGHAVkA6HkKxLm4DsfnNDNBQVWQCv9prkw'
+    spreadsheetsId = '1PnVWC9j-P8lL7EzhMKRKnSuwmf2qDE2avSLIZJYSISg'
+    sheetId = 'Character List'
     gssService = ss2json.getGoogleSpreadsheetsService() 
-    values = ss2json.loadTheTableFromGoogleSpreadsheets(
+    sheetData = ss2json.loadTheTableFromGoogleSpreadsheets(
         spreadsheetsService=gssService, 
         spreadsheetsId=spreadsheetsId,
-        sheetId=None)
-    return HttpResponse("Ping!")
+        sheetId=sheetId)
+    return JsonResponse(sheetData.__dict__)

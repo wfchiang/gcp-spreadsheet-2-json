@@ -11,20 +11,26 @@ AUTH_SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 CREDENTIALS_PATH = 'credentials.json'
 MAX_COLS = 100
 MAX_ROWS = 1000 
-DATA_CHUNCK_SIZE = 100 
+DATA_CHUNCK_SIZE = 100
 
 # ====
 # Class Definition(s)
 # ====
-class SheetData: 
+class SheetDataId: 
     spreadsheetsId = None 
     sheetId = None 
-    columnTitles = None 
-    data = None 
 
     def __init__ (self, spreadsheetsId, sheetId): 
         self.spreadsheetsId = spreadsheetsId
         self.sheetId = sheetId
+
+class SheetData: 
+    id = None 
+    columnTitles = None 
+    data = None 
+
+    def __init__ (self, spreadsheetsId, sheetId): 
+        self.id = SheetDataId(spreadsheetsId, sheetId).__dict__
 
     def setColumnTitles (self, columnTitles = []): 
         self.columnTitles = columnTitles[:]
@@ -129,6 +135,7 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
     for i in range(0, len(columnTitles)): 
         if (isEmptyCell(columnTitles[i])): 
             columnTitles = columnTitles[0:i]
+            break
 
     sheetData.setColumnTitles(columnTitles)
     
@@ -149,16 +156,17 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
             dataRange=dataRange)
         if not values or len(values) == 0: 
             break
+        if (len(values) < DATA_CHUNCK_SIZE): 
+            end_of_data = True 
         for v in values: 
             if all(map(isEmptyCell, v)): 
                 end_of_data = True 
+                break
             else: 
                 rows.append(v)
         if (end_of_data): 
             break 
     
-    sheetData.setData(rows)
+    sheetData.setData(rows)  
 
-    print (str(sheetData.columnTitles))
-    print (str(sheetData.data))
-        
+    return sheetData
