@@ -11,5 +11,4 @@ def ping (request):
         spreadsheetsService=gssService, 
         spreadsheetsId=spreadsheetsId,
         sheetId=None)
-    print ('>> ' + str(values))
     return HttpResponse("Ping!")
