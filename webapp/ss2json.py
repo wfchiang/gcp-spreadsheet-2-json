@@ -7,6 +7,7 @@ from google.auth.transport.requests import Request as GAuthRequest
 # ====
 # Parameters 
 # ====
+AUTH_CODE = None 
 AUTH_SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 CREDENTIALS_PATH = 'credentials.json'
 MAX_COLS = 100
@@ -76,6 +77,17 @@ def isEmptyCell (d):
     if d.strip() == '': 
         return True 
     return False 
+
+def splitStringBySpace (s): 
+    if (s is None): 
+        return None 
+    tempList = s.split(' ')
+    sList = []
+    for t in tempList: 
+        if (t.strip() == ''):
+            continue
+        sList.append(t)
+    return sList
 
 # ====
 # GCP IO functions

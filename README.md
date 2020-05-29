@@ -10,7 +10,7 @@ Use Google Spreadsheet as Database using Google Cloud Platform
 
 > python3 manage.py runserver
 
-# Tricks 
+# Useful Tips 
 ## Dump requirements.txt
 In the virtual environment... 
 > pip3 freeze >> requirements.txt 

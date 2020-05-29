@@ -1,6 +1,7 @@
 # [START django_app]
 runtime: python37
 entrypoint: gunicorn -b :$PORT webapp.wsgi:application
+service: ss2json
 
 handlers:
 # This configures Google App Engine to serve the files in the app's static

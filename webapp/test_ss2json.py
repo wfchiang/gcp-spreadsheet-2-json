@@ -44,5 +44,15 @@ class TestSS2Json (unittest.TestCase):
         colIndex = ss2json.makeColumnIndex(703)
         self.assertEqual('AAA', colIndex)
 
+    def test_splitStringBySpace_0 (self): 
+        sList = ss2json.splitStringBySpace(None)
+        self.assertIsNone(sList)
+        
+        sList = ss2json.splitStringBySpace('  a  b c ')
+        self.assertEqual(3, len(sList))
+        self.assertTrue('a' in sList)
+        self.assertTrue('b' in sList)
+        self.assertTrue('c' in sList)
+
 if __name__ == '__main__': 
     unittest.main() 
