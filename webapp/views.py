@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from django.http import HttpResponse
 from django.http import JsonResponse
 
@@ -10,12 +11,18 @@ def ping (request):
 
 # readSheetData endpoint 
 def readSheetData (request): 
-    # spreadsheetsId = '1brRpP3_vCuGHAVkA6HkKxLm4DsfnNDNBQVWQCv9prkw'
-    spreadsheetsId = '1PnVWC9j-P8lL7EzhMKRKnSuwmf2qDE2avSLIZJYSISg'
-    sheetId = 'Character List'
+    if (request.method != 'GET'): 
+        return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
+    
+    spreadsheetsId = request.GET.get('spreadsheetsId', None)
+    sheetId = request.GET.get('sheetId', None) 
+    if (spreadsheetsId is None): 
+        return HttpResponse('spreadsheetsId missed', status=HTTPStatus.BAD_REQUEST)
+    
     gssService = ss2json.getGoogleSpreadsheetsService() 
     sheetData = ss2json.loadTheTableFromGoogleSpreadsheets(
         spreadsheetsService=gssService, 
         spreadsheetsId=spreadsheetsId,
         sheetId=sheetId)
+    
     return JsonResponse(sheetData.__dict__)

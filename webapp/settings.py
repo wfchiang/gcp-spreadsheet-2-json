@@ -25,7 +25,9 @@ SECRET_KEY = 'ko#loai^4m3&(yx-apulq!4g*n9n^x=9^xqklc+82vf55wckrj'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'wfchiang-dev.uc.r.appspot.com', 
+]
 
 
 # Application definition
