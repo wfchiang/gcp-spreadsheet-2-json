@@ -1,7 +1,7 @@
 import pickle
 import os
 import json
-import gcp_oauth2_tools as GCPAuthTools 
+import webapp.gcp_oauth2_tools as GCPAuthTools 
 from googleapiclient.discovery import build as GClientBuild
 from google_auth_oauthlib.flow import Flow as GAuthFlow 
 from google_auth_oauthlib.flow import InstalledAppFlow as GAuthInstalledAppFlow

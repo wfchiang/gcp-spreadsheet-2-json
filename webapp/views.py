@@ -1,9 +1,10 @@
 from http import HTTPStatus
 from django.http import HttpResponse
 from django.http import JsonResponse
+from django.shortcuts import redirect 
 
 import json
-from . import ss2json
+import webapp.ss2json as ss2json
 
 # Ping endpoint 
 def ping (request): 
@@ -14,21 +15,10 @@ def auth (request):
     if (request.method != 'GET'): 
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
     
-    authCode = request.GET.get('code', None)
-    authScopes = ss2json.splitStringBySpace(request.GET.get('scope', None))
-
-    if (authCode is None): 
-        return HttpResponse('Authorization code is missed', status=HTTPStatus.METHOD_NOT_ALLOWED)
+    ss2json.AUTH_INFO.fetchCredentials(request.build_absolute_uri())
     
-    if (authScopes is None): 
-        return HttpResponse('Authorization scope is missed', status=HTTPStatus.METHOD_NOT_ALLOWED)
-
-    if any(map(lambda x:(x not in ss2json.AUTH_SCOPES), authScopes)): 
-        return HttpResponse('Unauthorized scope(s): ' + str(authScopes), status=HTTPStatus.Unauthorized)
-
-    ss2json.AUTH_CODE = authCode
-    
-    return HttpResponse('Authorized', status=HTTPStatus.OK)
+    # return HttpResponse('Authorized', status=HTTPStatus.OK)
+    return JsonResponse(ss2json.AUTH_INFO.credentials)
 
 # readSheetData endpoint 
 def readSheetData (request): 
@@ -51,13 +41,7 @@ def readSheetData (request):
 # ====
 # Debugging Endpoints 
 # ====
-def peepAuthCode (request): 
-    if (request.method != 'GET'): 
-        return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
-
-    return HttpResponse(str(ss2json.AUTH_CODE), status=HTTPStatus.OK)
-
-def peepAuthUrl (request):
+def peepClientSecret (request):
     if (request.method != 'GET'): 
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED) 
 
@@ -70,4 +54,4 @@ def peepAuthUrl (request):
         isOffline=isOffline, 
         isIncremental=isIncremental)
     
-    return HttpResponse(ss2json.AUTH_INFO.authUrl, status=HTTPStatus.OK)
+    return redirect(ss2json.AUTH_INFO.authUrl)
