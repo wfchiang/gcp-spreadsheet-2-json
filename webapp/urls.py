@@ -22,4 +22,6 @@ urlpatterns = [
     path('ping', views.ping, name='ping'), 
     path('auth', views.auth, name='auth'), 
     path('readSheetData', views.readSheetData, name='readSheetData'),
+    # path('peepAuthCode', views.peepAuthCode, name='peepAuthCode'),
+    path('peepAuthUrl', views.peepAuthUrl, name='peepAuthUrl'), 
 ]

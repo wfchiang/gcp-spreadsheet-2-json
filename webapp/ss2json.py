@@ -1,15 +1,19 @@
 import pickle
 import os
+import json
+import gcp_oauth2_tools as GCPAuthTools 
 from googleapiclient.discovery import build as GClientBuild
+from google_auth_oauthlib.flow import Flow as GAuthFlow 
 from google_auth_oauthlib.flow import InstalledAppFlow as GAuthInstalledAppFlow
 from google.auth.transport.requests import Request as GAuthRequest
 
 # ====
 # Parameters 
 # ====
-AUTH_CODE = None 
+AUTH_INFO = None 
 AUTH_SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-CREDENTIALS_PATH = 'credentials.json'
+CLIENT_SECRET_PATH = 'client_secret.json'
+
 MAX_COLS = 100
 MAX_ROWS = 1000 
 DATA_CHUNCK_SIZE = 100
@@ -92,6 +96,16 @@ def splitStringBySpace (s):
 # ====
 # GCP IO functions
 # ====
+def setAuthInfo (callbackUrl, isOffline, isIncremental):
+    global AUTH_INFO 
+    
+    AUTH_INFO = GCPAuthTools.GCPOAuth2Info(
+        clientSecretPath=CLIENT_SECRET_PATH, 
+        authScopes=AUTH_SCOPES, 
+        callbackUrl=callbackUrl, 
+        isOffline=isOffline, 
+        isIncremental=isIncremental)
+
 # This function loads the credentials -- the code refers to the example provided by GCP tutorial
 def getGoogleCredentials (): 
     creds = None
@@ -99,21 +113,21 @@ def getGoogleCredentials ():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
+    # if os.path.exists('token.pickle'):
+    #     with open('token.pickle', 'rb') as token:
+    #         creds = pickle.load(token)
     
     # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(GAuthRequest())
-        else:
-            flow = GAuthInstalledAppFlow.from_client_secrets_file(
-                CREDENTIALS_PATH, AUTH_SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
+    # if not creds or not creds.valid:
+    #     if creds and creds.expired and creds.refresh_token:
+    #         creds.refresh(GAuthRequest())
+    #     else:
+    #         flow = GAuthInstalledAppFlow.from_client_secrets_file(
+    #             CREDENTIALS_PATH, AUTH_SCOPES)
+    #         creds = flow.run_local_server(port=0)
+    #     # Save the credentials for the next run
+    #     with open('token.pickle', 'wb') as token:
+    #         pickle.dump(creds, token)
     
     return creds
 

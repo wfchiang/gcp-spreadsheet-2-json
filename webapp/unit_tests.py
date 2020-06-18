@@ -1,5 +1,26 @@
 import unittest
 import ss2json
+import gcp_oauth2_tools as GCPAuthTools
+
+class TestGCPOauth2Tools (unittest.TestCase): 
+
+    def test_class_GCPOAuth2Info_0 (self): 
+        fakeCallbackUrl = 'abcdef'
+
+        gcpOauth2Info = GCPAuthTools.GCPOAuth2Info(
+            clientSecretPath=ss2json.CLIENT_SECRET_PATH, 
+            authScopes=[], 
+            callbackUrl=fakeCallbackUrl, 
+            isOffline=True, 
+            isIncremental=False) 
+        
+        self.assertEqual(ss2json.CLIENT_SECRET_PATH, gcpOauth2Info.clientSecretPath)
+        self.assertEqual(fakeCallbackUrl, gcpOauth2Info.callbackUrl)
+
+        authUrl = gcpOauth2Info.authUrl 
+        self.assertIsNotNone(authUrl)
+        self.assertGreater(authUrl.find(fakeCallbackUrl), 0)
+
 
 class TestSS2Json (unittest.TestCase): 
     
@@ -50,9 +71,20 @@ class TestSS2Json (unittest.TestCase):
         
         sList = ss2json.splitStringBySpace('  a  b c ')
         self.assertEqual(3, len(sList))
-        self.assertTrue('a' in sList)
-        self.assertTrue('b' in sList)
-        self.assertTrue('c' in sList)
+        self.assertIn('a', sList)
+        self.assertIn('b', sList)
+        self.assertIn('c', sList)
+
+    def test_isEmptyCell_0 (self): 
+        self.assertTrue(ss2json.isEmptyCell(None))
+        self.assertTrue(ss2json.isEmptyCell(''))
+        self.assertTrue(ss2json.isEmptyCell('   '))
+        self.assertFalse(ss2json.isEmptyCell('abc'))
+
+    def test_setAuthInfo_0 (self): 
+        ss2json.setAuthInfo(callbackUrl='', isOffline=False, isIncremental=False)
+
+        self.assertIsNotNone(ss2json.AUTH_INFO)
 
 if __name__ == '__main__': 
     unittest.main() 

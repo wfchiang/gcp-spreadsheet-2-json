@@ -47,3 +47,27 @@ def readSheetData (request):
         sheetId=sheetId)
     
     return JsonResponse(sheetData.__dict__)
+
+# ====
+# Debugging Endpoints 
+# ====
+def peepAuthCode (request): 
+    if (request.method != 'GET'): 
+        return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+    return HttpResponse(str(ss2json.AUTH_CODE), status=HTTPStatus.OK)
+
+def peepAuthUrl (request):
+    if (request.method != 'GET'): 
+        return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED) 
+
+    isOffline = False
+    isIncremental = False 
+    callbackUrl = (request.is_secure() and "https://" or "http://") + request.get_host() + "/auth"
+    
+    ss2json.setAuthInfo(
+        callbackUrl=callbackUrl, 
+        isOffline=isOffline, 
+        isIncremental=isIncremental)
+    
+    return HttpResponse(ss2json.AUTH_INFO.authUrl, status=HTTPStatus.OK)
