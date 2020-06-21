@@ -13,7 +13,8 @@ class GCPOAuth2Info:
 
     authCode = None 
 
-    credentials = None 
+    gcpCredentials = None 
+    dictCredentials = None 
 
     def __init__ (self, clientSecretPath, authScopes, callbackUrl, isOffline, isIncremental):
         assert(type(clientSecretPath) is str), "clientSecretPath is not a string"
@@ -52,14 +53,16 @@ class GCPOAuth2Info:
 
         self.loadClientSecret()
         self.clientSecret.fetch_token(authorization_response=callbackOperation) 
-        self.saveCredentials(self.clientSecret.credentials)
+        self.gcpCredentials = self.clientSecret.credentials
 
-        print (str(self.credentials))
+        self.saveCredentials(self.gcpCredentials)
+
+        print (str(self.dictCredentials))
 
     def saveCredentials (self, gcpCredentials): 
         assert(gcpCredentials is not None), "gcpCredentials missed" 
 
-        self.credentials = {'token': gcpCredentials.token,
+        self.dictCredentials = {'token': gcpCredentials.token,
           'refresh_token': gcpCredentials.refresh_token,
           'token_uri': gcpCredentials.token_uri,
           'client_id': gcpCredentials.client_id,

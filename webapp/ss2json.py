@@ -1,22 +1,22 @@
 import pickle
 import os
 import json
-import webapp.gcp_oauth2_tools as GCPAuthTools 
 from googleapiclient.discovery import build as GClientBuild
-from google_auth_oauthlib.flow import Flow as GAuthFlow 
 from google_auth_oauthlib.flow import InstalledAppFlow as GAuthInstalledAppFlow
 from google.auth.transport.requests import Request as GAuthRequest
+from google.oauth2.credentials import Credentials as GAuthCredentials
 
 # ====
 # Parameters 
 # ====
-AUTH_INFO = None 
 AUTH_SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 CLIENT_SECRET_PATH = 'client_secret.json'
 
 MAX_COLS = 100
 MAX_ROWS = 1000 
 DATA_CHUNCK_SIZE = 100
+
+END_SYMBOL = '__end__'
 
 # ====
 # Class Definition(s)
@@ -82,6 +82,15 @@ def isEmptyCell (d):
         return True 
     return False 
 
+def isEndCell (d): 
+    if not d:
+        return True 
+    if (d is None):
+        return True
+    if d.strip() == END_SYMBOL:
+        return True
+    return False 
+
 def splitStringBySpace (s): 
     if (s is None): 
         return None 
@@ -96,45 +105,35 @@ def splitStringBySpace (s):
 # ====
 # GCP IO functions
 # ====
-def setAuthInfo (callbackUrl, isOffline, isIncremental):
-    global AUTH_INFO 
-    
-    AUTH_INFO = GCPAuthTools.GCPOAuth2Info(
-        clientSecretPath=CLIENT_SECRET_PATH, 
-        authScopes=AUTH_SCOPES, 
-        callbackUrl=callbackUrl, 
-        isOffline=isOffline, 
-        isIncremental=isIncremental)
-
 # This function loads the credentials -- the code refers to the example provided by GCP tutorial
-def getGoogleCredentials (): 
-    creds = None
+# def getGoogleCredentials (): 
+#     creds = None
     
-    # The file token.pickle stores the user's access and refresh tokens, and is
-    # created automatically when the authorization flow completes for the first
-    # time.
-    # if os.path.exists('token.pickle'):
-    #     with open('token.pickle', 'rb') as token:
-    #         creds = pickle.load(token)
+#     The file token.pickle stores the user's access and refresh tokens, and is
+#     created automatically when the authorization flow completes for the first
+#     time.
+#     if os.path.exists('token.pickle'):
+#         with open('token.pickle', 'rb') as token:
+#             creds = pickle.load(token)
     
-    # If there are no (valid) credentials available, let the user log in.
-    # if not creds or not creds.valid:
-    #     if creds and creds.expired and creds.refresh_token:
-    #         creds.refresh(GAuthRequest())
-    #     else:
-    #         flow = GAuthInstalledAppFlow.from_client_secrets_file(
-    #             CREDENTIALS_PATH, AUTH_SCOPES)
-    #         creds = flow.run_local_server(port=0)
-    #     # Save the credentials for the next run
-    #     with open('token.pickle', 'wb') as token:
-    #         pickle.dump(creds, token)
+#     If there are no (valid) credentials available, let the user log in.
+#     if not creds or not creds.valid:
+#         if creds and creds.expired and creds.refresh_token:
+#             creds.refresh(GAuthRequest())
+#         else:
+#             flow = GAuthInstalledAppFlow.from_client_secrets_file(
+#                 CREDENTIALS_PATH, AUTH_SCOPES)
+#             creds = flow.run_local_server(port=0)
+#         # Save the credentials for the next run
+#         with open('token.pickle', 'wb') as token:
+#             pickle.dump(creds, token)
     
-    return creds
+#     return creds
 
 # This function loads the Google service -- the code refers to the example provided by GCP tutorial 
-def getGoogleSpreadsheetsService (): 
-    gCreds = getGoogleCredentials() 
-    gService = GClientBuild.service = GClientBuild('sheets', 'v4', credentials=gCreds)
+def getGoogleSpreadsheetsService (dictCredentials): 
+    gcpCreds = GAuthCredentials(**dictCredentials)
+    gService = GClientBuild.service = GClientBuild('sheets', 'v4', credentials=gcpCreds)
     return gService.spreadsheets()
 
 # This function read data of a Google spreadsheets from a SpreadsheetsService 
@@ -159,7 +158,7 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
         dataRange=dataRange)
     columnTitles = values[0]
     for i in range(0, len(columnTitles)): 
-        if (isEmptyCell(columnTitles[i])): 
+        if (isEmptyCell(columnTitles[i]) or isEndCell(columnTitles[i])): 
             columnTitles = columnTitles[0:i]
             break
 
@@ -185,7 +184,7 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
         if (len(values) < DATA_CHUNCK_SIZE): 
             end_of_data = True 
         for v in values: 
-            if all(map(isEmptyCell, v)): 
+            if (all(map(isEmptyCell, v)) or any(map(isEndCell, v))): 
                 end_of_data = True 
                 break
             else: 

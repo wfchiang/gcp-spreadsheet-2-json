@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('ping', views.ping, name='ping'), 
     path('auth', views.auth, name='auth'), 
+    path('authEntry', views.authEnty, name='authEntry'), 
     path('readSheetData', views.readSheetData, name='readSheetData'),
     # path('peepClientSecret', views.peepClientSecret, name='peepClientSecret'), 
 ]
