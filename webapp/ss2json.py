@@ -9,7 +9,7 @@ from google.oauth2.credentials import Credentials as GAuthCredentials
 # ====
 # Parameters 
 # ====
-AUTH_SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+AUTH_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_PATH = 'client_secret.json'
 
 MAX_COLS = 100
@@ -141,6 +141,25 @@ def readGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, dataRange):
     serviceResult = spreadsheetsService.values().get(spreadsheetId=spreadsheetsId, range=dataRange).execute()
     values = serviceResult.get('values', [])
     return values 
+
+# This function write/update to a Google spreadsheet cells 
+def writeOneGoogleSpreadsheetsCell (spreadsheetsService, spreadsheetsId, sheetId, cellIndex, value):
+    body = {
+        'values': [
+            [value]
+        ]
+    }
+    serviceResult = spreadsheetsService.values().update(
+        spreadsheetId=spreadsheetsId, 
+        range=makeDataRange(
+            sheetId=sheetId, 
+            upperLeftCell=cellIndex, 
+            bottomRightCell=cellIndex),
+        valueInputOption='RAW', 
+        body=body).execute()
+    numUpdatedCells = int(serviceResult.get('updatedCells'))
+    assert(numUpdatedCells == 1), "Invalid number of updated cell: " + str(numUpdatedCells)
+    return numUpdatedCells
 
 # Try loading "THE" (upper-left) table in a sheet
 def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, sheetId): 

@@ -23,5 +23,6 @@ urlpatterns = [
     path('auth', views.auth, name='auth'), 
     path('authEntry', views.authEnty, name='authEntry'), 
     path('readSheetData', views.readSheetData, name='readSheetData'),
+    path('writeCellData', views.writeCellData, name='writeCellData'), 
     # path('peepClientSecret', views.peepClientSecret, name='peepClientSecret'), 
 ]

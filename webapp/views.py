@@ -73,6 +73,36 @@ def readSheetData (request):
     
     return JsonResponse(sheetData.__dict__)
 
+def writeCellData (request): 
+    if (request.method != 'POST'): 
+        return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
+
+    if (not checkAuthorization()): 
+        return HttpResponse('Not authorized yet', status=HTTPStatus.UNAUTHORIZED)
+
+    request_data = json.loads(request.body) 
+    
+    spreadsheetsId = ('spreadsheetsId' in request_data.keys()) and request_data['spreadsheetsId'] or None
+    sheetId = ('sheetId' in request_data.keys()) and request_data['sheetId'] or None 
+    cellIndex = ('cellIndex' in request_data.keys()) and request_data['cellIndex'] or None 
+    value = ('value' in request_data.keys()) and request_data['value'] or None 
+    if (spreadsheetsId is None): 
+        return HttpResponse('spreadsheetsId missed', status=HTTPStatus.BAD_REQUEST)
+    if (cellIndex is None): 
+        return HttpResponse('cellIndex missed', status=HTTPStatus.BAD_REQUEST)
+    if (value is None): 
+        value = ''
+    
+    gssService = ss2json.getGoogleSpreadsheetsService(AUTH_INFO.dictCredentials) 
+    numUpdatedCells = ss2json.writeOneGoogleSpreadsheetsCell(
+        spreadsheetsService=gssService, 
+        spreadsheetsId=spreadsheetsId,
+        sheetId=sheetId, 
+        cellIndex=cellIndex, 
+        value=value)
+
+    return HttpResponse(str(numUpdatedCells), status=HTTPStatus.OK)
+
 # ====
 # Debugging Endpoints 
 # ====
