@@ -16,8 +16,6 @@ MAX_COLS = 100
 MAX_ROWS = 1000 
 DATA_CHUNCK_SIZE = 100
 
-END_SYMBOL = '__end__'
-
 # ====
 # Class Definition(s)
 # ====
@@ -80,15 +78,6 @@ def isEmptyCell (d):
         return True 
     if d.strip() == '': 
         return True 
-    return False 
-
-def isEndCell (d): 
-    if not d:
-        return True 
-    if (d is None):
-        return True
-    if d.strip() == END_SYMBOL:
-        return True
     return False 
 
 def splitStringBySpace (s): 
@@ -177,7 +166,7 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
         dataRange=dataRange)
     columnTitles = values[0]
     for i in range(0, len(columnTitles)): 
-        if (isEmptyCell(columnTitles[i]) or isEndCell(columnTitles[i])): 
+        if isEmptyCell(columnTitles[i]):
             columnTitles = columnTitles[0:i]
             break
 
@@ -203,7 +192,7 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
         if (len(values) < DATA_CHUNCK_SIZE): 
             end_of_data = True 
         for v in values: 
-            if (all(map(isEmptyCell, v)) or any(map(isEndCell, v))): 
+            if all(map(isEmptyCell, v)): 
                 end_of_data = True 
                 break
             else: 
