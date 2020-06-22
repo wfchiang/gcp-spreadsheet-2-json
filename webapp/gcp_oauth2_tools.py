@@ -57,7 +57,7 @@ class GCPOAuth2Info:
 
         self.saveCredentials(self.gcpCredentials)
 
-        print (str(self.dictCredentials))
+        # print (str(self.dictCredentials))
 
     def saveCredentials (self, gcpCredentials): 
         assert(gcpCredentials is not None), "gcpCredentials missed" 

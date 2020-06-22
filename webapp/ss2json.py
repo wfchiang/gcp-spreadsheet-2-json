@@ -27,10 +27,18 @@ class SheetDataId:
         self.spreadsheetsId = spreadsheetsId
         self.sheetId = sheetId
 
+class SheetRow: 
+    rowIndex = None 
+    data = None 
+
+    def __init__ (self, rowIndex, data = {}): 
+        self.rowIndex = str(rowIndex) 
+        self.data = data 
+
 class SheetData: 
     id = None 
     columnTitles = None 
-    data = None 
+    rows = None 
 
     def __init__ (self, spreadsheetsId, sheetId): 
         self.id = SheetDataId(spreadsheetsId, sheetId).__dict__
@@ -38,13 +46,15 @@ class SheetData:
     def setColumnTitles (self, columnTitles = []): 
         self.columnTitles = columnTitles[:]
 
-    def setData (self, rows = []):
-        self.data = [] 
-        for r in rows: 
+    def setData (self, first_row_index, rows = []):
+        self.rows = [] 
+        for i in range(0, len(rows)): 
+            r = rows[i]
+            row_index = str(i + int(first_row_index))
             new_data = {} 
-            for i in range(0, len(self.columnTitles)): 
-                new_data[self.columnTitles[i]] = r[i]
-            self.data.append(new_data)
+            for j in range(0, len(self.columnTitles)): 
+                new_data[self.columnTitles[j]] = (j < len(r) and r[j] or '')
+            self.rows.append(SheetRow(row_index, new_data).__dict__)
 
 # ====
 # Utilities 
@@ -174,8 +184,8 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
     
     # Try to load the rows 
     rows = [] 
-    new_rows = [] 
-    starting_row_index = 2
+    first_row_index = 2 
+    starting_row_index = first_row_index
     end_of_data = False 
     while (len(rows) < MAX_ROWS): 
         dataRange = makeDataRange(
@@ -188,6 +198,7 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
             spreadsheetsId=spreadsheetsId, 
             dataRange=dataRange)
         if not values or len(values) == 0: 
+            print ('not values or len(values) == 0')
             break
         if (len(values) < DATA_CHUNCK_SIZE): 
             end_of_data = True 
@@ -200,6 +211,6 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, she
         if (end_of_data): 
             break 
     
-    sheetData.setData(rows)  
+    sheetData.setData(first_row_index, rows)  
 
     return sheetData
