@@ -1,0 +1,14 @@
+__pycache__
+*~
+*.pyc
+credentials.json
+client_secret.json
+token.pickle
+env/
+
+!.gcloudignore
+!*.py
+!run.sh
+!test.sh
+!requirements.txt
+!app.yml
