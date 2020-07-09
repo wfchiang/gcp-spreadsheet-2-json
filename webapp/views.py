@@ -22,11 +22,11 @@ AUTH_CLIENT_SECRET = None
 # Class(es)
 # ====
 class AuthResponse: 
-    isAuthorized = False 
+    isAuthorized = '' 
     message = ''
 
     def __init__ (self, isAuthorized, message): 
-        self.isAuthorized = ((type(isAuthorized) is bool) and isAuthorized or False)
+        self.isAuthorized = ((type(isAuthorized) is str) and isAuthorized or '')
         self.message = ((type(message) is str) and message or '')
 
 # ====
@@ -100,8 +100,6 @@ def authExit (request):
 
     isAuthorized = request.GET.get('isAuthorized', None)
     message = request.GET.get('message', '')
-
-    isAuthorized = bool(isAuthorized)
 
     if (isAuthorized is None): 
         return HttpResponse('isAuthorized missed', status=HTTPStatus.BAD_REQUEST)
