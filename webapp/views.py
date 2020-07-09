@@ -57,7 +57,7 @@ def authEnty (request):
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     if (isRequestAuthorized(request)): 
-        return redirect(makeAuthExitUrl(request, True, request.session['credentials']['token']))
+        return redirect(makeAuthExitUrl(request, True, ''))
 
     if (AUTH_CALLBACK_URL is None): 
         AUTH_CALLBACK_URL = makeHostUrl(request) + "/auth"
@@ -91,7 +91,7 @@ def auth (request):
 
     request.session['credentials'] = dictCredentials
 
-    return redirect(makeAuthExitUrl(request, True, dictCredentials['token']))
+    return redirect(makeAuthExitUrl(request, True, ''))
 
 # Authorization Exit -- in order to do something for hiding the auth information 
 def authExit (request): 
