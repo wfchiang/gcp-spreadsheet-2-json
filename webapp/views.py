@@ -7,6 +7,8 @@ import json
 import webapp.ss2json as ss2json
 import webapp.gcp_oauth2_tools as gcp_oauth2_tools 
 
+import webapp.settings as django_settings
+
 AUTH_INFO = None 
 
 # ====
@@ -29,6 +31,9 @@ def authEnty (request):
     if (request.method != 'GET'): 
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
 
+    request.session['hi'] = 'hello'
+    return HttpResponse('[' + str(request.session._session_key) + ', ' + str(request.session._session) + ']')
+
     isOffline = False
     isIncremental = False 
     callbackUrl = (request.is_secure() and "https://" or "http://") + request.get_host() + "/auth"
@@ -49,6 +54,8 @@ def auth (request):
     
     AUTH_INFO.fetchCredentials(request.build_absolute_uri())
     
+    request.session['credentials'] = 'True'
+
     return HttpResponse('Authorized', status=HTTPStatus.OK)
     # return JsonResponse(AUTH_INFO.dictCredentials)
 

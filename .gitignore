@@ -5,9 +5,11 @@ credentials.json
 client_secret.json
 token.pickle
 env/
+static/
 
 !.gcloudignore
 !*.py
+!gcp-deploy.sh
 !run.sh
 !test.sh
 !requirements.txt
