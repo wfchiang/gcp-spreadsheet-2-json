@@ -1,6 +1,8 @@
-import pickle
 import os
 import json
+import urllib.parse
+import requests
+from http import HTTPStatus
 from googleapiclient.discovery import build as GClientBuild
 from google_auth_oauthlib.flow import InstalledAppFlow as GAuthInstalledAppFlow
 from google.auth.transport.requests import Request as GAuthRequest
@@ -16,9 +18,19 @@ MAX_COLS = 100
 MAX_ROWS = 1000 
 DATA_CHUNCK_SIZE = 100
 
+KEY_AUTHORIZATION = 'Authorization'
+
+URL_SPREADSHEETS = 'https://sheets.googleapis.com/v4/spreadsheets'
+
 # ====
 # Class Definition(s)
 # ====
+class GoogleServiceException (Exception): 
+    message = None 
+
+    def __init__ (self, message=''): 
+        self.message = message  
+
 class SheetDataId: 
     spreadsheetsId = None 
     sheetId = None 
@@ -101,45 +113,18 @@ def splitStringBySpace (s):
         sList.append(t)
     return sList
 
-# ====
-# GCP IO functions
-# ====
-# This function loads the credentials -- the code refers to the example provided by GCP tutorial
-# def getGoogleCredentials (): 
-#     creds = None
-    
-#     The file token.pickle stores the user's access and refresh tokens, and is
-#     created automatically when the authorization flow completes for the first
-#     time.
-#     if os.path.exists('token.pickle'):
-#         with open('token.pickle', 'rb') as token:
-#             creds = pickle.load(token)
-    
-#     If there are no (valid) credentials available, let the user log in.
-#     if not creds or not creds.valid:
-#         if creds and creds.expired and creds.refresh_token:
-#             creds.refresh(GAuthRequest())
-#         else:
-#             flow = GAuthInstalledAppFlow.from_client_secrets_file(
-#                 CREDENTIALS_PATH, AUTH_SCOPES)
-#             creds = flow.run_local_server(port=0)
-#         # Save the credentials for the next run
-#         with open('token.pickle', 'wb') as token:
-#             pickle.dump(creds, token)
-    
-#     return creds
-
-# This function loads the Google service -- the code refers to the example provided by GCP tutorial 
-def getGoogleSpreadsheetsService (dictCredentials): 
-    gcpCreds = GAuthCredentials(**dictCredentials)
-    gService = GClientBuild.service = GClientBuild('sheets', 'v4', credentials=gcpCreds)
-    return gService.spreadsheets()
-
 # This function read data of a Google spreadsheets from a SpreadsheetsService 
-def readGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, dataRange): 
-    serviceResult = spreadsheetsService.values().get(spreadsheetId=spreadsheetsId, range=dataRange).execute()
-    values = serviceResult.get('values', [])
-    return values 
+def readGoogleSpreadsheet (spreadsheetId, dataRange, token): 
+    reqUrl = URL_SPREADSHEETS + '/' + urllib.parse.quote(str(spreadsheetId)) + '/values/' + urllib.parse.quote(str(dataRange))
+    reqHeaders = {
+        KEY_AUTHORIZATION: str(token)
+    }
+    res = requests.get(reqUrl, headers=reqHeaders)
+
+    if (res.status_code != HTTPStatus.OK): 
+        raise GoogleServiceException('readGoogleSpreadsheet call failed')
+
+    return res.json() 
 
 # This function write/update to a Google spreadsheet cells 
 def writeOneGoogleSpreadsheetsCell (spreadsheetsService, spreadsheetsId, sheetId, cellIndex, value):

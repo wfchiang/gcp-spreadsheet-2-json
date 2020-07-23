@@ -111,23 +111,22 @@ def readSheetData (request):
     if (request.method != 'GET'): 
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
 
-    if (not isRequestAuthorized(request)): 
-        return redirect(makeAuthExitUrl(request, False, 'Not Authorized Yet'))
-    
-    dictCredentials = request.session['credentials']
+    if (ss2json.KEY_AUTHORIZATION not in request.headers): 
+        return HttpResponse('OAuth2 token is missed', status=HTTPStatus.BAD_REQUEST)
 
-    spreadsheetsId = request.GET.get('spreadsheetsId', None)
+    spreadsheetId = request.GET.get('spreadsheetId', None)    
     sheetId = request.GET.get('sheetId', None) 
-    if (spreadsheetsId is None): 
-        return HttpResponse('spreadsheetsId missed', status=HTTPStatus.BAD_REQUEST)
+    if (spreadsheetId is None): 
+        return HttpResponse('spreadsheetId missed', status=HTTPStatus.BAD_REQUEST)
     
-    gssService = ss2json.getGoogleSpreadsheetsService(dictCredentials) 
-    sheetData = ss2json.loadTheTableFromGoogleSpreadsheets(
-        spreadsheetsService=gssService, 
-        spreadsheetsId=spreadsheetsId,
-        sheetId=sheetId)
+    dataRange = ss2json.makeDataRange(sheetId, 'A1', 'D5')
     
-    return JsonResponse(sheetData.__dict__)
+    res = ss2json.readGoogleSpreadsheet(
+        spreadsheetId=spreadsheetId, 
+        dataRange=dataRange, 
+        token=request.headers[ss2json.KEY_AUTHORIZATION])
+
+    return JsonResponse(res)
 
 # writeCellData endpoint 
 def writeCellData (request): 
