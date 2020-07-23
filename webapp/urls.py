@@ -25,5 +25,6 @@ urlpatterns = [
     path('authExit', views.authExit, name='authExit'), 
     path('readSheetData', views.readSheetData, name='readSheetData'),
     path('writeCellData', views.writeCellData, name='writeCellData'), 
-    # path('peepClientSecret', views.peepClientSecret, name='peepClientSecret'), 
+    # mock endpoints for dev 
+    path('devRead0', views.devRead0, name='devRead0'),
 ]

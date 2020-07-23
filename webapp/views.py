@@ -129,6 +129,7 @@ def readSheetData (request):
     
     return JsonResponse(sheetData.__dict__)
 
+# writeCellData endpoint 
 def writeCellData (request): 
     if (request.method != 'POST'): 
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
@@ -160,3 +161,22 @@ def writeCellData (request):
         value=value)
 
     return HttpResponse(str(numUpdatedCells), status=HTTPStatus.OK)
+
+# ====
+# DEV endpoint 
+# ====
+def devRead0 (request): 
+    sheetData = ss2json.SheetData('spreadsheetId', 'sheetId')
+    sheetData.setColumnTitles(['col0', 'col1'])
+    rows = [
+        ['r0c0', 'r0c1'], 
+        ['r1c0', 'r1c1']
+    ]
+    sheetData.setData(0, rows)
+
+    response = JsonResponse(sheetData.__dict__)
+
+    # this is not a good practice... 
+    response['Access-Control-Allow-Origin'] = '*'
+
+    return response
