@@ -14,8 +14,8 @@ from google.oauth2.credentials import Credentials as GAuthCredentials
 AUTH_SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CLIENT_SECRET_PATH = 'client_secret.json'
 
-MAX_COLS = 100
-MAX_ROWS = 1000 
+MAX_COLS = 10
+MAX_ROWS = 1000
 DATA_CHUNCK_SIZE = 100
 
 KEY_AUTHORIZATION = 'Authorization'
@@ -31,12 +31,18 @@ class GoogleServiceException (Exception):
     def __init__ (self, message=''): 
         self.message = message  
 
+class SS2JsonException (Exception): 
+    message = None 
+
+    def __init__ (self, message=''): 
+        self.message = message
+
 class SheetDataId: 
-    spreadsheetsId = None 
+    spreadsheetId = None 
     sheetId = None 
 
-    def __init__ (self, spreadsheetsId, sheetId): 
-        self.spreadsheetsId = spreadsheetsId
+    def __init__ (self, spreadsheetId, sheetId): 
+        self.spreadsheetId = spreadsheetId
         self.sheetId = sheetId
 
 class SheetRow: 
@@ -52,8 +58,8 @@ class SheetData:
     columnTitles = None 
     rows = None 
 
-    def __init__ (self, spreadsheetsId, sheetId): 
-        self.id = SheetDataId(spreadsheetsId, sheetId).__dict__
+    def __init__ (self, spreadsheetId, sheetId): 
+        self.id = SheetDataId(spreadsheetId, sheetId).__dict__
 
     def setColumnTitles (self, columnTitles = []): 
         self.columnTitles = columnTitles[:]
@@ -146,19 +152,28 @@ def writeOneGoogleSpreadsheetsCell (spreadsheetsService, spreadsheetsId, sheetId
     return numUpdatedCells
 
 # Try loading "THE" (upper-left) table in a sheet
-def loadTheTableFromGoogleSpreadsheets (spreadsheetsService, spreadsheetsId, sheetId): 
+def loadTheTableFromGoogleSpreadsheets (spreadsheetId, sheetId, token): 
     
-    sheetData = SheetData(spreadsheetsId=spreadsheetsId, sheetId=sheetId)
+    sheetData = SheetData(spreadsheetId=spreadsheetId, sheetId=sheetId)
 
     # Try to get the column titles 
     dataRange = makeDataRange(
         sheetId=sheetId, 
         upperLeftCell=(makeColumnIndex(1)+'1'), 
-        bottomRightCell=(makeColumnIndex(MAX_COLS)+'1'))
-    values = readGoogleSpreadsheets(
-        spreadsheetsService=spreadsheetsService, 
-        spreadsheetsId=spreadsheetsId,
-        dataRange=dataRange)
+        bottomRightCell=(makeColumnIndex(MAX_COLS + 1)+str(MAX_ROWS+1)))
+    spreadsheetData = readGoogleSpreadsheet(
+        spreadsheetId=spreadsheetId, 
+        dataRange=dataRange, 
+        token=token)
+
+    values = spreadsheetData['values']
+    if (len(values) > MAX_ROWS): 
+        raise SS2JsonException('The number of rows exceeds ss2json limit (' + str(MAX_ROWS) + ')')
+    if (max(map(lambda r : len(r), values)) > MAX_COLS): 
+        raise SS2JsonException('The number of columns exceeds ss2json limit (' + str(MAX_COLS) + ')')
+
+    return spreadsheetData
+    
     columnTitles = values[0]
     for i in range(0, len(columnTitles)): 
         if isEmptyCell(columnTitles[i]):

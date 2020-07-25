@@ -118,12 +118,10 @@ def readSheetData (request):
     sheetId = request.GET.get('sheetId', None) 
     if (spreadsheetId is None): 
         return HttpResponse('spreadsheetId missed', status=HTTPStatus.BAD_REQUEST)
-    
-    dataRange = ss2json.makeDataRange(sheetId, 'A1', 'D5')
-    
-    res = ss2json.readGoogleSpreadsheet(
+
+    res = ss2json.loadTheTableFromGoogleSpreadsheets(
         spreadsheetId=spreadsheetId, 
-        dataRange=dataRange, 
+        sheetId=sheetId, 
         token=request.headers[ss2json.KEY_AUTHORIZATION])
 
     return JsonResponse(res)
