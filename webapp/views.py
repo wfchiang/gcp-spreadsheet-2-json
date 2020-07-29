@@ -106,25 +106,43 @@ def authExit (request):
 
     return JsonResponse(AuthResponse(isAuthorized, message).__dict__)
 
+# Make a response for enabling CORS
+def enableCORS (res, allowedMethod):
+    res['Access-Control-Allow-Origin'] = '*'
+    res['Access-Control-Allow-Methods'] = str(allowedMethod)
+    res['Access-Control-Allow-Headers'] = 'Authorization'
+
 # readSheetData endpoint 
 def readSheetData (request): 
-    if (request.method != 'GET'): 
+    allowedMethod = 'GET'
+
+    if (request.method == 'OPTIONS'):
+        preflightRes =  HttpResponse('', status=HTTPStatus.OK)
+        enableCORS(preflightRes, allowedMethod)
+        return preflightRes
+
+    if (request.method != allowedMethod): 
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
 
     if (ss2json.KEY_AUTHORIZATION not in request.headers): 
         return HttpResponse('OAuth2 token is missed', status=HTTPStatus.BAD_REQUEST)
+    token = request.headers[ss2json.KEY_AUTHORIZATION]
 
     spreadsheetId = request.GET.get('spreadsheetId', None)    
-    sheetId = request.GET.get('sheetId', None) 
+    sheetId = request.GET.get('sheetId', None)
+    if (token is None): 
+        return HttpResponse('token is missed', status=HTTPStatus.UNAUTHORIZED) 
     if (spreadsheetId is None): 
         return HttpResponse('spreadsheetId missed', status=HTTPStatus.BAD_REQUEST)
 
     res = ss2json.loadTheTableFromGoogleSpreadsheets(
         spreadsheetId=spreadsheetId, 
         sheetId=sheetId, 
-        token=request.headers[ss2json.KEY_AUTHORIZATION])
+        token=token)
 
-    return JsonResponse(res)
+    jsonRes = JsonResponse(res.__dict__)
+    enableCORS(jsonRes, allowedMethod)
+    return jsonRes
 
 # writeCellData endpoint 
 def writeCellData (request): 

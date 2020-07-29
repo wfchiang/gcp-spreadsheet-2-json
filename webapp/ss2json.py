@@ -128,7 +128,7 @@ def readGoogleSpreadsheet (spreadsheetId, dataRange, token):
     res = requests.get(reqUrl, headers=reqHeaders)
 
     if (res.status_code != HTTPStatus.OK): 
-        raise GoogleServiceException('readGoogleSpreadsheet call failed')
+        raise GoogleServiceException('readGoogleSpreadsheet call failed -- http status ' + str(res.status_code))
 
     return res.json() 
 
@@ -172,45 +172,14 @@ def loadTheTableFromGoogleSpreadsheets (spreadsheetId, sheetId, token):
     if (max(map(lambda r : len(r), values)) > MAX_COLS): 
         raise SS2JsonException('The number of columns exceeds ss2json limit (' + str(MAX_COLS) + ')')
 
-    return spreadsheetData
+    # return if no values 
+    if (len(values) == 0): 
+        return sheetData
     
-    columnTitles = values[0]
-    for i in range(0, len(columnTitles)): 
-        if isEmptyCell(columnTitles[i]):
-            columnTitles = columnTitles[0:i]
-            break
+    # set column titles 
+    sheetData.setColumnTitles(values[0])
 
-    sheetData.setColumnTitles(columnTitles)
-    
-    # Try to load the rows 
-    rows = [] 
-    first_row_index = 2 
-    starting_row_index = first_row_index
-    end_of_data = False 
-    while (len(rows) < MAX_ROWS): 
-        dataRange = makeDataRange(
-            sheetId=sheetId, 
-            upperLeftCell=(makeColumnIndex(1)+str(starting_row_index)),
-            bottomRightCell=(makeColumnIndex(len(columnTitles))+str(starting_row_index+DATA_CHUNCK_SIZE-1)))
-        starting_row_index += DATA_CHUNCK_SIZE
-        values = readGoogleSpreadsheets(
-            spreadsheetsService=spreadsheetsService, 
-            spreadsheetsId=spreadsheetsId, 
-            dataRange=dataRange)
-        if not values or len(values) == 0: 
-            print ('not values or len(values) == 0')
-            break
-        if (len(values) < DATA_CHUNCK_SIZE): 
-            end_of_data = True 
-        for v in values: 
-            if all(map(isEmptyCell, v)): 
-                end_of_data = True 
-                break
-            else: 
-                rows.append(v)
-        if (end_of_data): 
-            break 
-    
-    sheetData.setData(first_row_index, rows)  
+    # set rows  
+    sheetData.setData(0, values[1:])  
 
     return sheetData
