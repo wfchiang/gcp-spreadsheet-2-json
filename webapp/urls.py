@@ -20,9 +20,6 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('ping', views.ping, name='ping'), 
-    path('auth', views.auth, name='auth'), 
-    path('authEntry', views.authEnty, name='authEntry'), 
-    path('authExit', views.authExit, name='authExit'), 
     path('readSheetData', views.readSheetData, name='readSheetData'),
     path('writeCellData', views.writeCellData, name='writeCellData'), 
     # mock endpoints for dev 
