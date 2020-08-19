@@ -133,23 +133,31 @@ def readGoogleSpreadsheet (spreadsheetId, dataRange, token):
     return res.json() 
 
 # This function write/update to a Google spreadsheet cells 
-def writeOneGoogleSpreadsheetsCell (spreadsheetsService, spreadsheetsId, sheetId, cellIndex, value):
-    body = {
-        'values': [
-            [value]
-        ]
+def writeOneGoogleSpreadsheetCell (spreadsheetId, dataRange, newValue, token): 
+    params = {
+        'valueInputOption': 'RAW', 
+        'alt': 'json'
     }
-    serviceResult = spreadsheetsService.values().update(
-        spreadsheetId=spreadsheetsId, 
-        range=makeDataRange(
-            sheetId=sheetId, 
-            upperLeftCell=cellIndex, 
-            bottomRightCell=cellIndex),
-        valueInputOption='RAW', 
-        body=body).execute()
-    numUpdatedCells = int(serviceResult.get('updatedCells'))
-    assert(numUpdatedCells == 1), "Invalid number of updated cell: " + str(numUpdatedCells)
-    return numUpdatedCells
+    reqHeaders = {
+        KEY_AUTHORIZATION: str(token)
+    }
+
+    reqUrl = URL_SPREADSHEETS + '/' + urllib.parse.quote(str(spreadsheetId)) + '/values/' + urllib.parse.quote(str(dataRange)) + '?' + urllib.parse.urlencode(params)
+    
+    body = {"values": [[newValue]]}
+    
+    res = requests.put(reqUrl, headers=reqHeaders, data=json.dumps(body))
+    if (res.status_code != HTTPStatus.OK): 
+        raise GoogleServiceException('writeOneGoogleSpreadsheetCell call failed -- http status ' + str(res.status_code))
+    
+    resJson = res.json()
+    nUpdatedRows = resJson['updatedRows']
+    nUpdatedCols = resJson['updatedColumns']
+    nUpdatedCells = resJson['updatedCells']
+    if (nUpdatedRows != 1 or nUpdatedCols != 1 or nUpdatedCells != 1): 
+        raise GoogleServiceException('writeOneGoogleSpreadsheetCell updated multiple cells -- [rows,columns,cells]: ' + str([nUpdatedRows,nUpdatedCols,nUpdatedCells]))
+
+    return resJson 
 
 # Try loading "THE" (upper-left) table in a sheet
 def loadTheTableFromGoogleSpreadsheets (spreadsheetId, sheetId, token): 

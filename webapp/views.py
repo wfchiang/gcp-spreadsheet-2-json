@@ -70,34 +70,38 @@ def readSheetData (request):
 
 # writeCellData endpoint 
 def writeCellData (request): 
-    if (request.method != 'POST'): 
+    allowedMethod = 'POST'
+
+    if (request.method == 'OPTIONS'):
+        preflightRes =  HttpResponse('', status=HTTPStatus.OK)
+        enableCORS(preflightRes, allowedMethod)
+        return preflightRes
+    
+    if (request.method != allowedMethod): 
         return HttpResponse('', status=HTTPStatus.METHOD_NOT_ALLOWED)
-    
-    if (not isRequestAuthorized(request)): 
-        return redirect(makeAuthExitUrl(request, False, 'Not Authorized Yet'))
-    
-    dictCredentials = request.session['credentials']
+
+    if (ss2json.KEY_AUTHORIZATION not in request.headers): 
+        return HttpResponse('OAuth2 token is missed', status=HTTPStatus.BAD_REQUEST)
+    token = request.headers[ss2json.KEY_AUTHORIZATION]
 
     request_data = json.loads(request.body) 
     
-    spreadsheetsId = ('spreadsheetsId' in request_data.keys()) and request_data['spreadsheetsId'] or None
+    spreadsheetId = ('spreadsheetId' in request_data.keys()) and request_data['spreadsheetId'] or None
     sheetId = ('sheetId' in request_data.keys()) and request_data['sheetId'] or None 
     cellIndex = ('cellIndex' in request_data.keys()) and request_data['cellIndex'] or None 
     value = ('value' in request_data.keys()) and request_data['value'] or None 
-    if (spreadsheetsId is None): 
-        return HttpResponse('spreadsheetsId missed', status=HTTPStatus.BAD_REQUEST)
+    if (spreadsheetId is None): 
+        return HttpResponse('spreadsheetId missed', status=HTTPStatus.BAD_REQUEST)
     if (cellIndex is None): 
         return HttpResponse('cellIndex missed', status=HTTPStatus.BAD_REQUEST)
     if (value is None): 
         value = ''
     
-    gssService = ss2json.getGoogleSpreadsheetsService(dictCredentials) 
-    numUpdatedCells = ss2json.writeOneGoogleSpreadsheetsCell(
-        spreadsheetsService=gssService, 
-        spreadsheetsId=spreadsheetsId,
-        sheetId=sheetId, 
-        cellIndex=cellIndex, 
-        value=value)
+    numUpdatedCells = ss2json.writeOneGoogleSpreadsheetCell(
+        spreadsheetId=spreadsheetId, 
+        dataRange=ss2json.makeDataRange(sheetId=sheetId, upperLeftCell=cellIndex, bottomRightCell=cellIndex), 
+        newValue=value, 
+        token=token)
 
     return HttpResponse(str(numUpdatedCells), status=HTTPStatus.OK)
 
